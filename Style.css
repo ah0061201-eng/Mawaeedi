@@ -1,0 +1,114 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px 16px;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #f3f6fb;
+  color: #202b3c;
+}
+
+.container {
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+header h1 {
+  margin-bottom: 8px;
+  color: #2563eb;
+  font-size: 32px;
+}
+
+header p {
+  color: #64748b;
+}
+
+.card {
+  background: white;
+  padding: 22px;
+  margin-bottom: 20px;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px #1e293b0c;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 20px;
+}
+
+label {
+  display: block;
+  margin: 16px 0 8px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #d8e0ec;
+  border-radius: 10px;
+  font-size: 16px;
+  background: #fff;
+}
+
+input:focus {
+  outline: 2px solid #93b4ff;
+  border-color: #2563eb;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+#appointments {
+  display: grid;
+  gap: 12px;
+}
+
+.appointment {
+  background: #f8faff;
+  border: 1px solid #e1e9f5;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.appointment h3 {
+  margin: 0 0 8px;
+}
+
+.appointment p {
+  margin: 0;
+  color: #64748b;
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 18px 12px;
+  }
+
+  .card {
+    padding: 17px;
+  }
+}
