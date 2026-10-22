@@ -1,40 +1,47 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>مواعيدي</title>
-  <link rel="stylesheet" herf="style.css"
+  <link rel="stylesheet" href="style.css">
 </head>
-  <script src="script.js"></script>
+
 <body>
-  <h1>مواعيدي 📅</h1>
-  <p>نظّم يومك، موعدًا بعد موعد.</p>
+  <div class="container">
+    <header>
+      <h1>📅 مواعيدي</h1>
+      <p>نظّم يومك، موعدًا بعد موعد.</p>
+    </header>
 
-  <h2>إضافة موعد جديد</h2>
+    <section class="card">
+      <h2>إضافة موعد جديد</h2>
 
-  <form id="appointment-form">
-    <label for="task">اسم المهمة:</label>
-    <input
-      type="text"
-      id="task"
-      placeholder="مثال: مذاكرة الكيمياء"
-      required
-    >
+      <form id="appointment-form">
+        <label for="task">اسم المهمة</label>
+        <input
+          type="text"
+          id="task"
+          placeholder="مثال: مذاكرة الكيمياء"
+          required
+        >
 
-    <br><br>
+        <label for="time">وقت الموعد</label>
+        <input type="time" id="time" required>
 
-    <label for="time">وقت الموعد:</label>
-    <input type="time" id="time" required>
+        <button type="submit">حفظ الموعد</button>
+      </form>
+    </section>
 
-    <br><br>
-
-    <button type="submit">حفظ الموعد</button>
-  </form>
-
-  <h2>مواعيدي المحفوظة</h2>
-  <div id="appointments">
-    لا توجد مواعيد حتى الآن.
+    <section class="card">
+      <h2>مواعيدي المحفوظة</h2>
+      <div id="appointments">
+        لا توجد مواعيد حتى الآن.
+      </div>
+    </section>
   </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
