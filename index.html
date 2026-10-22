@@ -7,6 +7,19 @@
   <title>مواعيدي</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "b651cfee-cc1e-4a03-b54f-d996c3fab2a7",
+      serviceWorkerPath: "OneSignalSDKWorker.js",
+      serviceWorkerParam: {
+        scope: "/Mawaeedi/"
+      }
+    });
+  });
+</script>
 </head>
 
 <body>
@@ -48,14 +61,5 @@
   </div>
 
   <script src="script.js"></script>
-  <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js")
-        .then(() => console.log("تم تسجيل خدمة الإشعارات"))
-        .catch((error) => console.error("فشل التسجيل:", error));
-    });
-  }
-</script>
 </body>
 </html>
