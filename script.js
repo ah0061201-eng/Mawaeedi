@@ -1,6 +1,6 @@
-
 const SUPABASE_URL = "https://gxenypllgsybkbblmyay.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uCLxgfac5VREiLPRPMLUeg_yfpbgYGb";
+const ONESIGNAL_APP_ID = "b651cfee-cc1e-4a03-b54f-d996c3fab2a7";
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -23,26 +23,38 @@ let currentUser = null;
 let appointments = [];
 
 function showAuthStatus(message) {
-  if (authStatus) authStatus.textContent = message;
+  authStatus.textContent = message;
 }
 
 function updatePageAccess() {
   const loggedIn = Boolean(currentUser);
 
   form.hidden = !loggedIn;
-  if (authForm) {
-    authForm.querySelector('button[type="submit"]').hidden = loggedIn;
-    signupButton.hidden = loggedIn;
-    logoutButton.hidden = !loggedIn;
-    emailInput.disabled = loggedIn;
-    passwordInput.disabled = loggedIn;
-  }
+  authForm.querySelector('button[type="submit"]').hidden = loggedIn;
+  signupButton.hidden = loggedIn;
+  logoutButton.hidden = !loggedIn;
+  emailInput.disabled = loggedIn;
+  passwordInput.disabled = loggedIn;
 
   if (!loggedIn) {
     appointments = [];
     renderAppointments();
-    appointmentsContainer.textContent = "سجّل الدخول لعرض مواعيدك.";
   }
+}
+
+async function linkOneSignalUser(userId) {
+  return new Promise((resolve) => {
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async (OneSignal) => {
+      try {
+        await OneSignal.login(userId);
+        resolve(true);
+      } catch (error) {
+        console.error("OneSignal login error:", error);
+        resolve(false);
+      }
+    });
+  });
 }
 
 async function loadAppointments() {
@@ -77,7 +89,7 @@ function renderAppointments() {
     return;
   }
 
-  appointments.forEach((appointment) => {
+  for (const appointment of appointments) {
     const card = document.createElement("div");
     card.className = "appointment";
 
@@ -89,7 +101,8 @@ function renderAppointments() {
       appointment.appointment_time
     ).toLocaleTimeString("ar-SA", {
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
+      timeZone: "Asia/Riyadh"
     })}`;
 
     const deleteButton = document.createElement("button");
@@ -115,18 +128,24 @@ function renderAppointments() {
 
     card.append(title, time, deleteButton);
     appointmentsContainer.append(card);
-  });
+  }
+}
+
+async function finishLogin(user, message) {
+  currentUser = user;
+  updatePageAccess();
+  showAuthStatus(message);
+
+  await linkOneSignalUser(user.id);
+  await loadAppointments();
 }
 
 authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const email = emailInput.value.trim();
-  const password = passwordInput.value;
-
   const { data, error } = await db.auth.signInWithPassword({
-    email,
-    password
+    email: emailInput.value.trim(),
+    password: passwordInput.value
   });
 
   if (error) {
@@ -134,10 +153,7 @@ authForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  currentUser = data.user;
-  showAuthStatus("تم تسجيل الدخول بنجاح.");
-  updatePageAccess();
-  await loadAppointments();
+  await finishLogin(data.user, "تم تسجيل الدخول بنجاح.");
 });
 
 signupButton.addEventListener("click", async () => {
@@ -156,18 +172,24 @@ signupButton.addEventListener("click", async () => {
     return;
   }
 
-  if (!data.session) {
-    showAuthStatus("تحقّق من بريدك الإلكتروني لتأكيد الحساب، ثم سجّل الدخول.");
+  if (!data.session || !data.user) {
+    showAuthStatus("تحقّق من بريدك الإلكتروني، ثم سجّل الدخول.");
     return;
   }
 
-  currentUser = data.user;
-  showAuthStatus("تم إنشاء الحساب.");
-  updatePageAccess();
-  await loadAppointments();
+  await finishLogin(data.user, "تم إنشاء الحساب.");
 });
 
 logoutButton.addEventListener("click", async () => {
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async (OneSignal) => {
+    try {
+      await OneSignal.logout();
+    } catch (error) {
+      console.error("OneSignal logout error:", error);
+    }
+  });
+
   const { error } = await db.auth.signOut();
 
   if (error) {
@@ -191,7 +213,10 @@ form.addEventListener("submit", async (event) => {
   const task = taskInput.value.trim();
   const time = timeInput.value;
 
-  if (!task || !time) return;
+  if (!task || !time) {
+    alert("أدخل اسم المهمة ووقتها.");
+    return;
+  }
 
   const [hours, minutes] = time.split(":").map(Number);
   const appointmentDate = new Date();
@@ -209,7 +234,7 @@ form.addEventListener("submit", async (event) => {
   });
 
   if (error) {
-    alert("تعذّر حفظ الموعد. تأكد من إعداد صلاحيات قاعدة البيانات.");
+    alert("تعذّر حفظ الموعد.");
     console.error(error);
     return;
   }
@@ -225,10 +250,17 @@ notificationButton.addEventListener("click", () => {
     try {
       await OneSignal.Notifications.requestPermission();
 
-      notificationStatus.textContent =
-        OneSignal.Notifications.permission
-          ? "تم السماح بالإشعارات."
-          : "لم يتم السماح بالإشعارات.";
+      if (OneSignal.Notifications.permission) {
+        if (currentUser) {
+          await OneSignal.login(currentUser.id);
+        }
+
+        notificationStatus.textContent = currentUser
+          ? "تم السماح بالإشعارات وربطها بحسابك."
+          : "تم السماح بالإشعارات. سجّل الدخول لربطها بحسابك.";
+      } else {
+        notificationStatus.textContent = "لم يتم السماح بالإشعارات.";
+      }
     } catch (error) {
       notificationStatus.textContent = "تعذّر تفعيل الإشعارات.";
       console.error(error);
@@ -249,6 +281,7 @@ async function initialize() {
 
   if (currentUser) {
     showAuthStatus("أنت مسجّل الدخول.");
+    await linkOneSignalUser(currentUser.id);
     await loadAppointments();
   }
 }
