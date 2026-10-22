@@ -4,6 +4,9 @@ const taskInput = document.getElementById("task");
 const timeInput = document.getElementById("time");
 const appointmentsContainer = document.getElementById("appointments");
 
+const notificationButton = document.getElementById("enable-notifications");
+const notificationStatus = document.getElementById("notification-status");
+
 let appointments = JSON.parse(
   localStorage.getItem("mawaeedi-appointments") || "[]"
 );
@@ -62,5 +65,29 @@ form.addEventListener("submit", (event) => {
   renderAppointments();
   form.reset();
 });
+
+if (notificationButton && notificationStatus) {
+  notificationButton.addEventListener("click", () => {
+    notificationStatus.textContent = "جارٍ تجهيز طلب الإشعارات...";
+
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async function (OneSignal) {
+      try {
+        await OneSignal.Notifications.requestPermission();
+
+        if (OneSignal.Notifications.permission) {
+          notificationStatus.textContent = "تم السماح بالإشعارات.";
+        } else {
+          notificationStatus.textContent =
+            "لم يتم السماح بالإشعارات. يمكنك تفعيلها من إعدادات الجهاز.";
+        }
+      } catch (error) {
+        console.error("خطأ في تفعيل الإشعارات:", error);
+        notificationStatus.textContent =
+          "تعذّر تفعيل الإشعارات. حاول مرة أخرى.";
+      }
+    });
+  });
+}
 
 renderAppointments();
