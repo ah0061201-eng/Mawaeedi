@@ -1,9 +1,19 @@
+
 const form = document.getElementById("appointment-form");
 const taskInput = document.getElementById("task");
 const timeInput = document.getElementById("time");
 const appointmentsContainer = document.getElementById("appointments");
 
-let appointments = [];
+let appointments = JSON.parse(
+  localStorage.getItem("mawaeedi-appointments") || "[]"
+);
+
+function saveAppointments() {
+  localStorage.setItem(
+    "mawaeedi-appointments",
+    JSON.stringify(appointments)
+  );
+}
 
 function renderAppointments() {
   appointmentsContainer.innerHTML = "";
@@ -30,6 +40,7 @@ function renderAppointments() {
 
     deleteButton.addEventListener("click", () => {
       appointments.splice(index, 1);
+      saveAppointments();
       renderAppointments();
     });
 
@@ -44,12 +55,10 @@ form.addEventListener("submit", (event) => {
   const task = taskInput.value.trim();
   const time = timeInput.value;
 
-  if (!task || !time) {
-    return;
-  }
+  if (!task || !time) return;
 
   appointments.push({ task, time });
-
+  saveAppointments();
   renderAppointments();
   form.reset();
 });
