@@ -1,114 +1,173 @@
+
+:root {
+  color-scheme: dark;
+  --background: #0b1120;
+  --surface: #151f32;
+  --surface-soft: #1b2940;
+  --border: #293750;
+  --text: #edf3ff;
+  --muted: #9aabc5;
+  --primary: #6688ff;
+  --primary-hover: #809bff;
+  --danger: #ff6b7a;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  padding: 24px 16px;
   min-height: 100vh;
+  padding: 36px 16px;
   font-family: Arial, sans-serif;
-  background: #f3f6fb;
-  color: #202b3c;
+  background:
+    radial-gradient(ellipse at top, #1b2b4a 0%, transparent 55%),
+    var(--background);
+  color: var(--text);
+  line-height: 1.7;
 }
 
 .container {
   width: 100%;
-  max-width: 650px;
+  max-width: 680px;
   margin: 0 auto;
 }
 
 header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 header h1 {
-  margin-bottom: 8px;
-  color: #2563eb;
-  font-size: 32px;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(30px, 6vw, 42px);
+  letter-spacing: -1px;
 }
 
 header p {
-  color: #64748b;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 15px;
 }
 
 .card {
-  background: white;
-  padding: 22px;
+  background: rgba(21, 31, 50, 0.96);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
   margin-bottom: 20px;
-  border-radius: 18px;
-  box-shadow: 0 4px 18px #1e293b0c;
+  box-shadow: 0 14px 36px #00000020;
 }
 
 h2 {
-  margin-top: 0;
+  margin: 0 0 18px;
   font-size: 20px;
 }
 
 label {
   display: block;
-  margin: 16px 0 8px;
+  margin: 18px 0 8px;
+  color: #d8e3f7;
+  font-size: 14px;
   font-weight: bold;
 }
 
 input {
+  display: block;
   width: 100%;
-  padding: 13px;
-  border: 1px solid #d8e0ec;
-  border-radius: 10px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0e1728;
+  color: var(--text);
+  font: inherit;
   font-size: 16px;
-  background: #fff;
+}
+
+input::placeholder {
+  color: #7586a2;
 }
 
 input:focus {
-  outline: 2px solid #93b4ff;
-  border-color: #2563eb;
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 button {
   width: 100%;
-  padding: 14px;
-  margin-top: 18px;
-  border: none;
-  border-radius: 10px;
-  background: #2563eb;
-  color: white;
-  font-size: 17px;
+  min-height: 48px;
+  padding: 12px 16px;
+  margin-top: 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
 }
 
 button:hover {
-  background: #1d4ed8;
+  background: var(--primary-hover);
+}
+
+button:active {
+  transform: scale(0.99);
 }
 
 #appointments {
   display: grid;
   gap: 12px;
+  color: var(--muted);
 }
 
 .appointment {
-  background: #f8faff;
-  border: 1px solid #e1e9f5;
-  border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface-soft);
+  overflow-wrap: anywhere;
 }
 
 .appointment h3 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
+  color: var(--text);
+  font-size: 17px;
 }
 
 .appointment p {
   margin: 0;
-  color: #64748b;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.appointment button {
+  background: #482532;
+  color: #ffb5be;
+  border: 1px solid #713444;
+  margin-top: 14px;
+}
+
+.appointment button:hover {
+  background: #623040;
 }
 
 @media (max-width: 480px) {
   body {
-    padding: 18px 12px;
+    padding: 24px 12px;
   }
 
   .card {
-    padding: 17px;
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  header {
+    margin-bottom: 24px;
   }
 }
