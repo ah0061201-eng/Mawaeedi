@@ -7,43 +7,52 @@
   <title>مواعيدي</title>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "b651cfee-cc1e-4a03-b54f-d996c3fab2a7",
-      serviceWorkerPath: "/Mawaeedi/OneSignalSDKWorker.js",
-      serviceWorkerParam: {
-        scope: "/Mawaeedi/"
-      }
+
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function (OneSignal) {
+      await OneSignal.init({
+        appId: "b651cfee-cc1e-4a03-b54f-d996c3fab2a7",
+        serviceWorkerPath: "/Mawaeedi/OneSignalSDKWorker.js",
+        serviceWorkerParam: { scope: "/Mawaeedi/" }
+      });
     });
-  });
-</script>
+  </script>
 </head>
 
 <body>
   <div class="container">
     <header>
-  <h1>📅 مواعيدي</h1>
-  <p>نظّم يومك، موعدًا بعد موعد.</p>
-  <button id="enable-notifications" type="button">
-    🔔 تفعيل الإشعارات
-  </button>
-  <p id="notification-status">الإشعارات لم تُفعّل بعد.</p>
-</header>
+      <h1>📅 مواعيدي</h1>
+      <p>نظّم يومك، موعدًا بعد موعد.</p>
+      <button id="enable-notifications" type="button">🔔 تفعيل الإشعارات</button>
+      <p id="notification-status">الإشعارات لم تُفعّل بعد.</p>
+    </header>
+
+    <section class="card">
+      <h2>تسجيل الدخول</h2>
+      <form id="auth-form">
+        <label for="email">البريد الإلكتروني</label>
+        <input type="email" id="email" required autocomplete="email">
+
+        <label for="password">كلمة المرور</label>
+        <input type="password" id="password" required autocomplete="current-password">
+
+        <button type="submit">تسجيل الدخول</button>
+        <button type="button" id="signup-button">إنشاء حساب</button>
+        <button type="button" id="logout-button">تسجيل الخروج</button>
+        <p id="auth-status"></p>
+      </form>
+    </section>
 
     <section class="card">
       <h2>إضافة موعد جديد</h2>
-
       <form id="appointment-form">
         <label for="task">اسم المهمة</label>
-        <input
-          type="text"
-          id="task"
-          placeholder="مثال: مذاكرة الكيمياء"
-          required
-        >
+        <input type="text" id="task" placeholder="مثال: مذاكرة الكيمياء" required>
 
         <label for="time">وقت الموعد</label>
         <input type="time" id="time" required>
@@ -54,9 +63,7 @@
 
     <section class="card">
       <h2>مواعيدي المحفوظة</h2>
-      <div id="appointments">
-        لا توجد مواعيد حتى الآن.
-      </div>
+      <div id="appointments">سجّل الدخول لعرض مواعيدك.</div>
     </section>
   </div>
 
