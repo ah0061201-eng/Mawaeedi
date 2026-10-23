@@ -184,6 +184,7 @@ notificationButton.addEventListener("click", () => {
 });
 
 async function initialize() {
+  appointmentsContainer.textContent = "بدأ تشغيل التطبيق...";
   appointmentsContainer.textContent = "جارٍ تجهيز مواعيدك...";
 
   try {
