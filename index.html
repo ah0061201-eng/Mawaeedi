@@ -33,6 +33,34 @@
     </header>
 
     <section class="card">
+      <section class="card" id="auth-section">
+  <h2>تسجيل الدخول</h2>
+
+  <form id="auth-form">
+    <label for="auth-email">البريد الإلكتروني</label>
+    <input
+      type="email"
+      id="auth-email"
+      placeholder="أدخل بريدك الإلكتروني"
+      required
+    >
+
+    <label for="auth-password">كلمة المرور</label>
+    <input
+      type="password"
+      id="auth-password"
+      placeholder="أدخل كلمة المرور"
+      minlength="6"
+      required
+    >
+
+    <button type="submit" id="login-button">تسجيل الدخول</button>
+    <button type="button" id="signup-button">إنشاء حساب</button>
+    <button type="button" id="logout-button" hidden>تسجيل الخروج</button>
+
+    <p id="auth-status"></p>
+  </form>
+</section>
       <h2>مواعيدي المحفوظة</h2>
       <div id="appointments">جارٍ تحميل مواعيدك...</div>
     </section>
