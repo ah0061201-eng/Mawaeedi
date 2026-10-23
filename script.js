@@ -33,6 +33,7 @@ async function loadAppointments() {
   appointmentsContainer.textContent = "جارٍ تحميل مواعيدك...";
 
   try {
+    appointmentsContainer.textContent = "جارٍ الاتصال بقاعدة البيانات...";
     const { data, error } = await db
       .from("appointments")
       .select("id, task, appointment_time")
