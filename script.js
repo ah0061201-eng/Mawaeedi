@@ -184,40 +184,124 @@ notificationButton.addEventListener("click", () => {
   });
 });
 
-async function initialize() {
-  appointmentsContainer.textContent = "بدأ تشغيل التطبيق...";
-  appointmentsContainer.textContent = "جارٍ تجهيز مواعيدك...";
+
+const authForm = document.getElementById("auth-form");
+const authEmail = document.getElementById("auth-email");
+const authPassword = document.getElementById("auth-password");
+const loginButton = document.getElementById("login-button");
+const signupButton = document.getElementById("signup-button");
+const logoutButton = document.getElementById("logout-button");
+const authStatus = document.getElementById("auth-status");
+
+function updateAuthUI() {
+  const loggedIn = Boolean(currentUser);
+
+  authEmail.disabled = loggedIn;
+  authPassword.disabled = loggedIn;
+  loginButton.hidden = loggedIn;
+  signupButton.hidden = loggedIn;
+  logoutButton.hidden = !loggedIn;
+
+  authStatus.textContent = loggedIn
+    ? "تم تسجيل الدخول."
+    : "سجّل الدخول أو أنشئ حسابًا جديدًا.";
+
+  if (!loggedIn) {
+    appointments = [];
+    appointmentsContainer.textContent = "سجّل الدخول لعرض مواعيدك.";
+  }
+}
+
+async function finishLogin(user) {
+  currentUser = user;
+  updateAuthUI();
+  await loadAppointments();
+  linkOneSignalUser(user.id);
+}
+
+authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  authStatus.textContent = "جارٍ تسجيل الدخول...";
+  loginButton.disabled = true;
 
   try {
-    const { data: sessionData, error: sessionError } =
-      await db.auth.getSession();
+    const { data, error } = await db.auth.signInWithPassword({
+      email: authEmail.value.trim(),
+      password: authPassword.value
+    });
 
-    if (sessionError) throw sessionError;
+    if (error) throw error;
 
-    let user = sessionData.session?.user;
-
-    if (!user) {
-      const { data, error } = await db.auth.signInAnonymously();
-      if (error) throw error;
-      user = data.user;
-    }
-
-    if (!user) {
-      throw new Error("لم يتم إنشاء جلسة مستخدم.");
-    }
-
-    currentUser = user;
-
-    await loadAppointments();
-
-    // ربط الإشعارات دون تعطيل تحميل المواعيد
-    linkOneSignalUser(currentUser.id);
+    await finishLogin(data.user);
   } catch (error) {
-    console.error("Initialization error:", error);
+    authStatus.textContent = "تعذّر تسجيل الدخول: " + error.message;
+  } finally {
+    loginButton.disabled = false;
+  }
+});
 
-    appointmentsContainer.textContent =
-      "تعذّر تشغيل التطبيق: " +
-      (error.message || JSON.stringify(error));
+signupButton.addEventListener("click", async () => {
+  authStatus.textContent = "جارٍ إنشاء الحساب...";
+  signupButton.disabled = true;
+
+  try {
+    const { data, error } = await db.auth.signUp({
+      email: authEmail.value.trim(),
+      password: authPassword.value
+    });
+
+    if (error) throw error;
+
+    if (data.session && data.user) {
+      await finishLogin(data.user);
+    } else {
+      authStatus.textContent =
+        "تم إنشاء الحساب. افتح بريدك الإلكتروني لتأكيده، ثم سجّل الدخول.";
+    }
+  } catch (error) {
+    authStatus.textContent = "تعذّر إنشاء الحساب: " + error.message;
+  } finally {
+    signupButton.disabled = false;
+  }
+});
+
+logoutButton.addEventListener("click", async () => {
+  logoutButton.disabled = true;
+
+  try {
+    const { error } = await db.auth.signOut();
+    if (error) throw error;
+
+    currentUser = null;
+    updateAuthUI();
+  } catch (error) {
+    authStatus.textContent = "تعذّر تسجيل الخروج: " + error.message;
+  } finally {
+    logoutButton.disabled = false;
+  }
+});
+
+async function initialize() {
+  appointmentsContainer.textContent = "سجّل الدخول لعرض مواعيدك.";
+
+  try {
+    const { data, error } = await db.auth.getSession();
+    if (error) throw error;
+
+    const user = data.session?.user;
+
+    if (user && !user.is_anonymous) {
+      await finishLogin(user);
+    } else {
+      if (user?.is_anonymous) {
+        await db.auth.signOut();
+      }
+
+      currentUser = null;
+      updateAuthUI();
+    }
+  } catch (error) {
+    authStatus.textContent = "تعذّر تجهيز تسجيل الدخول: " + error.message;
   }
 }
 
