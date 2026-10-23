@@ -3,16 +3,12 @@ const SUPABASE_URL = "https://gxenypllgsybkbblmyay.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uCLxgfac5VREiLPRPMLUeg_yfpbgYGb";
 const ONESIGNAL_APP_ID = "b651cfee-cc1e-4a03-b54f-d996c3fab2a7";
 
-const db = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const form = document.getElementById("appointment-form");
 const taskInput = document.getElementById("task");
 const timeInput = document.getElementById("time");
 const appointmentsContainer = document.getElementById("appointments");
-
 const notificationButton = document.getElementById("enable-notifications");
 const notificationStatus = document.getElementById("notification-status");
 
@@ -20,19 +16,15 @@ let currentUser = null;
 let appointments = [];
 
 async function linkOneSignalUser(userId) {
-  try {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
 
-    window.OneSignalDeferred.push(async (OneSignal) => {
-      try {
-        await OneSignal.login(userId);
-      } catch (error) {
-        console.error("OneSignal login error:", error);
-      }
-    });
-  } catch (error) {
-    console.error("OneSignal setup error:", error);
-  }
+  window.OneSignalDeferred.push(async (OneSignal) => {
+    try {
+      await OneSignal.login(userId);
+    } catch (error) {
+      console.error("OneSignal login error:", error);
+    }
+  });
 }
 
 async function loadAppointments() {
@@ -51,10 +43,13 @@ async function loadAppointments() {
 
     appointments = data || [];
     renderAppointments();
-} catch (error) {
-  appointmentsContainer.textContent =
-    "خطأ: " + (error.message || JSON.stringify(error));
-  console.error("Load appointments error:", error);
+  } catch (error) {
+    appointmentsContainer.textContent =
+      "تعذّر تحميل المواعيد: " +
+      (error.message || JSON.stringify(error));
+
+    console.error("Load appointments error:", error);
+  }
 }
 
 function renderAppointments() {
@@ -134,7 +129,6 @@ form.addEventListener("submit", async (event) => {
 
   const [hours, minutes] = time.split(":").map(Number);
   const appointmentDate = new Date();
-
   appointmentDate.setHours(hours, minutes, 0, 0);
 
   if (appointmentDate <= new Date()) {
@@ -178,15 +172,12 @@ notificationButton.addEventListener("click", () => {
           await OneSignal.login(currentUser.id);
         }
 
-        notificationStatus.textContent =
-          "تم السماح بالإشعارات.";
+        notificationStatus.textContent = "تم السماح بالإشعارات.";
       } else {
-        notificationStatus.textContent =
-          "لم يتم السماح بالإشعارات.";
+        notificationStatus.textContent = "لم يتم السماح بالإشعارات.";
       }
     } catch (error) {
-      notificationStatus.textContent =
-        "تعذّر تفعيل الإشعارات.";
+      notificationStatus.textContent = "تعذّر تفعيل الإشعارات.";
       console.error("Notification error:", error);
     }
   });
@@ -205,9 +196,7 @@ async function initialize() {
 
     if (!user) {
       const { data, error } = await db.auth.signInAnonymously();
-
       if (error) throw error;
-
       user = data.user;
     }
 
@@ -217,16 +206,16 @@ async function initialize() {
 
     currentUser = user;
 
-    // تحميل المواعيد دون انتظار OneSignal
     await loadAppointments();
 
-    // ربط المستخدم بالإشعارات بشكل منفصل
+    // ربط الإشعارات دون تعطيل تحميل المواعيد
     linkOneSignalUser(currentUser.id);
   } catch (error) {
     console.error("Initialization error:", error);
 
     appointmentsContainer.textContent =
-      "تعذّر تشغيل التطبيق. تحقق من اتصال الإنترنت وإعدادات Supabase.";
+      "تعذّر تشغيل التطبيق: " +
+      (error.message || JSON.stringify(error));
   }
 }
 
