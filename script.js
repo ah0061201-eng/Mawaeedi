@@ -190,10 +190,27 @@ async function initialize() {
 
     if (!user) {
       const { data, error } = await db.auth.signInAnonymously();
-
       if (error) throw error;
       user = data.user;
     }
+
+    if (!user) throw new Error("لم يتم إنشاء جلسة مستخدم.");
+
+    currentUser = user;
+
+    // حمّل المواعيد أولًا، دون انتظار OneSignal
+    await loadAppointments();
+
+    // اربط OneSignal بالخلفية
+    linkOneSignalUser(currentUser.id).catch(console.error);
+  } catch (error) {
+    console.error("Initialization error:", error);
+    appointmentsContainer.textContent =
+      "تعذّر تشغيل التطبيق. تحقق من اتصال الإنترنت وإعدادات Supabase.";
+  }
+}
+
+initialize();
 
     if (!user) throw new Error("لم يتم إنشاء جلسة مستخدم.");
 
