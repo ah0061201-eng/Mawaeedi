@@ -3,7 +3,10 @@ const SUPABASE_URL = "https://gxenypllgsybkbblmyay.supabase.co";
 const SUPABASE_KEY = "sb_publishable_uCLxgfac5VREiLPRPMLUeg_yfpbgYGb";
 const ONESIGNAL_APP_ID = "b651cfee-cc1e-4a03-b54f-d996c3fab2a7";
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
 const form = document.getElementById("appointment-form");
 const taskInput = document.getElementById("task");
@@ -17,38 +20,41 @@ let currentUser = null;
 let appointments = [];
 
 async function linkOneSignalUser(userId) {
-  return new Promise((resolve) => {
+  try {
     window.OneSignalDeferred = window.OneSignalDeferred || [];
 
     window.OneSignalDeferred.push(async (OneSignal) => {
       try {
         await OneSignal.login(userId);
-        resolve(true);
       } catch (error) {
         console.error("OneSignal login error:", error);
-        resolve(false);
       }
     });
-  });
+  } catch (error) {
+    console.error("OneSignal setup error:", error);
+  }
 }
 
 async function loadAppointments() {
   if (!currentUser) return;
 
-  const { data, error } = await db
-    .from("appointments")
-    .select("id, task, appointment_time")
-    .eq("owner_id", currentUser.id)
-    .order("appointment_time", { ascending: true });
+  appointmentsContainer.textContent = "جارٍ تحميل مواعيدك...";
 
-  if (error) {
+  try {
+    const { data, error } = await db
+      .from("appointments")
+      .select("id, task, appointment_time")
+      .eq("owner_id", currentUser.id)
+      .order("appointment_time", { ascending: true });
+
+    if (error) throw error;
+
+    appointments = data || [];
+    renderAppointments();
+  } catch (error) {
     appointmentsContainer.textContent = "تعذّر تحميل المواعيد.";
-    console.error(error);
-    return;
+    console.error("Load appointments error:", error);
   }
-
-  appointments = data || [];
-  renderAppointments();
 }
 
 function renderAppointments() {
@@ -88,20 +94,21 @@ function renderAppointments() {
     deleteButton.addEventListener("click", async () => {
       deleteButton.disabled = true;
 
-      const { error } = await db
-        .from("appointments")
-        .delete()
-        .eq("id", appointment.id)
-        .eq("owner_id", currentUser.id);
+      try {
+        const { error } = await db
+          .from("appointments")
+          .delete()
+          .eq("id", appointment.id)
+          .eq("owner_id", currentUser.id);
 
-      if (error) {
+        if (error) throw error;
+
+        await loadAppointments();
+      } catch (error) {
         alert("تعذّر حذف الموعد.");
-        console.error(error);
+        console.error("Delete appointment error:", error);
         deleteButton.disabled = false;
-        return;
       }
-
-      await loadAppointments();
     });
 
     card.append(title, time, deleteButton);
@@ -127,6 +134,7 @@ form.addEventListener("submit", async (event) => {
 
   const [hours, minutes] = time.split(":").map(Number);
   const appointmentDate = new Date();
+
   appointmentDate.setHours(hours, minutes, 0, 0);
 
   if (appointmentDate <= new Date()) {
@@ -144,35 +152,42 @@ form.addEventListener("submit", async (event) => {
       owner_id: currentUser.id
     });
 
-    if (error) {
-      alert("تعذّر حفظ الموعد.");
-      console.error(error);
-      return;
-    }
+    if (error) throw error;
 
     form.reset();
     await loadAppointments();
+  } catch (error) {
+    alert("تعذّر حفظ الموعد.");
+    console.error("Save appointment error:", error);
   } finally {
     if (saveButton) saveButton.disabled = false;
   }
 });
 
 notificationButton.addEventListener("click", () => {
+  notificationStatus.textContent = "جارٍ تفعيل الإشعارات...";
+
   window.OneSignalDeferred = window.OneSignalDeferred || [];
 
   window.OneSignalDeferred.push(async (OneSignal) => {
     try {
       await OneSignal.Notifications.requestPermission();
 
-      if (OneSignal.Notifications.permission && currentUser) {
-        await OneSignal.login(currentUser.id);
-        notificationStatus.textContent = "تم السماح بالإشعارات وربطها بجهازك.";
+      if (OneSignal.Notifications.permission) {
+        if (currentUser) {
+          await OneSignal.login(currentUser.id);
+        }
+
+        notificationStatus.textContent =
+          "تم السماح بالإشعارات.";
       } else {
-        notificationStatus.textContent = "لم يتم السماح بالإشعارات.";
+        notificationStatus.textContent =
+          "لم يتم السماح بالإشعارات.";
       }
     } catch (error) {
-      notificationStatus.textContent = "تعذّر تفعيل الإشعارات.";
-      console.error(error);
+      notificationStatus.textContent =
+        "تعذّر تفعيل الإشعارات.";
+      console.error("Notification error:", error);
     }
   });
 });
@@ -190,37 +205,26 @@ async function initialize() {
 
     if (!user) {
       const { data, error } = await db.auth.signInAnonymously();
+
       if (error) throw error;
+
       user = data.user;
     }
 
-    if (!user) throw new Error("لم يتم إنشاء جلسة مستخدم.");
+    if (!user) {
+      throw new Error("لم يتم إنشاء جلسة مستخدم.");
+    }
 
     currentUser = user;
 
-    // حمّل المواعيد أولًا، دون انتظار OneSignal
+    // تحميل المواعيد دون انتظار OneSignal
     await loadAppointments();
 
-    // اربط OneSignal بالخلفية
-    linkOneSignalUser(currentUser.id).catch(console.error);
+    // ربط المستخدم بالإشعارات بشكل منفصل
+    linkOneSignalUser(currentUser.id);
   } catch (error) {
     console.error("Initialization error:", error);
-    appointmentsContainer.textContent =
-      "تعذّر تشغيل التطبيق. تحقق من اتصال الإنترنت وإعدادات Supabase.";
-  }
-}
 
-initialize();
-
-    if (!user) throw new Error("لم يتم إنشاء جلسة مستخدم.");
-
-    currentUser = user;
-    renderAppointments();
-
-    await linkOneSignalUser(currentUser.id);
-    await loadAppointments();
-  } catch (error) {
-    console.error("Initialization error:", error);
     appointmentsContainer.textContent =
       "تعذّر تشغيل التطبيق. تحقق من اتصال الإنترنت وإعدادات Supabase.";
   }
