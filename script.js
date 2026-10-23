@@ -51,10 +51,10 @@ async function loadAppointments() {
 
     appointments = data || [];
     renderAppointments();
-  } catch (error) {
-    appointmentsContainer.textContent = "تعذّر تحميل المواعيد.";
-    console.error("Load appointments error:", error);
-  }
+} catch (error) {
+  appointmentsContainer.textContent =
+    "خطأ: " + (error.message || JSON.stringify(error));
+  console.error("Load appointments error:", error);
 }
 
 function renderAppointments() {
