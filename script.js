@@ -113,7 +113,7 @@ function renderAppointments() {
   }
 }
 
-form.addEventListener("submit", async (event) => {
+if (form) form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   if (!currentUser) {
