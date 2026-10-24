@@ -1,6 +1,5 @@
 
 const SUPABASE_URL = "https://gxenypllgsybkbblmyay.supabase.co";
-alert("تم تشغيل script.js");
 const SUPABASE_KEY = "sb_publishable_uCLxgfac5VREiLPRPMLUeg_yfpbgYGb";
 const ONESIGNAL_APP_ID = "b651cfee-cc1e-4a03-b54f-d996c3fab2a7";
 
